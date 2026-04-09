@@ -4,7 +4,7 @@
 
 const API = (() => {
   // Replace with your deployed Apps Script Web App URL
-  let BASE_URL = localStorage.getItem('solar_api_url') || '';
+  let BASE_URL = localStorage.getItem('solar_api_url') || 'https://script.google.com/macros/s/AKfycbypjX7cpu3kMpLrBRnv0YBxTqPFYKVayo7iofpPrGnHcsZcIRqZfj5R2mm3FemT3B7PlQ/exec';
 
   function setUrl(url) {
     BASE_URL = url.replace(/\/$/, '');
@@ -35,8 +35,15 @@ const API = (() => {
     }
 
     try {
-      const res = await fetch(url.toString(), opts);
-      return await res.json();
+      // Apps Script redirects — must follow with no-cors or use redirect:follow
+      const res = await fetch(url.toString(), { ...opts, redirect: 'follow' });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        console.error('API parse error:', text);
+        return { error: 'Invalid response from server' };
+      }
     } catch (err) {
       console.error('API error:', err);
       return { error: 'Network error. Check connection.' };
