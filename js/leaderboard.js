@@ -43,12 +43,13 @@ const Leaderboard = (() => {
         avatarHtml = `<canvas class="lb-avatar" width="32" height="32"></canvas>`;
       }
 
+      const levelsPlayed = entry.levelsPlayed || '?';
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${rank}</div>
         ${avatarHtml}
         <div class="lb-info">
           <div class="lb-name">${escapeHtml(entry.displayName)}</div>
-          <div class="lb-attempts">${entry.attempts} plays${entry.spent > 0 ? ' | ' + entry.spent + ' spent' : ''}</div>
+          <div class="lb-attempts">${levelsPlayed}/5 levels | ${entry.attempts} plays</div>
         </div>
         <div class="lb-score">${entry.totalScore.toLocaleString()}</div>
       `;

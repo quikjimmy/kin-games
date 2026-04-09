@@ -371,11 +371,13 @@ function getLeaderboard() {
   const leaderboard = [];
   for (const uid in bestScores) {
     const totalBest = Object.values(bestScores[uid]).reduce((a, b) => a + b, 0);
+    const levelsPlayed = Object.keys(bestScores[uid]).length;
     const spent = shopSpend[uid] || 0;
     leaderboard.push({
       ...users[uid],
       totalScore: totalBest - spent,
       rawScore: totalBest,
+      levelsPlayed,
       spent,
       attempts: attempts[uid] || 0
     });
