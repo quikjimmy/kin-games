@@ -283,6 +283,22 @@ const LocalDB = (() => {
         return { users: db.users.map(u => ({ userId: u.userId, username: u.username, displayName: u.displayName, avatarData: u.avatarData })) };
       }
 
+      case 'pinHint': {
+        const user = db.users.find(u => u.username === params.username.toLowerCase());
+        if (!user) return { error: 'User not found' };
+        const pin = String(user.pin);
+        return { success: true, hint: pin.charAt(0) + '**' + pin.charAt(pin.length - 1), displayName: user.displayName };
+      }
+
+      case 'resetPin': {
+        const user2 = db.users.find(u => u.username === params.username.toLowerCase());
+        if (!user2) return { error: 'User not found' };
+        if (!params.newPin || params.newPin.length !== 4) return { error: 'PIN must be 4 digits' };
+        user2.pin = params.newPin;
+        save(db);
+        return { success: true };
+      }
+
       default:
         return { error: 'Unknown action' };
     }

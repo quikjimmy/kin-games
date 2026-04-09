@@ -43,6 +43,12 @@ function handleRequest(e) {
       case 'getProfile':
         result = getProfile(params);
         break;
+      case 'pinHint':
+        result = pinHint(params);
+        break;
+      case 'resetPin':
+        result = resetPin(params);
+        break;
 
       // Scores
       case 'submitScore':
@@ -187,6 +193,32 @@ function login(params) {
     avatarData: found.data[4],
     unlockedLevel: found.data[6] || 1
   };
+}
+
+function pinHint(params) {
+  const { username } = params;
+  if (!username) return { error: 'Username required' };
+
+  const sheet = getSheet(SHEETS.USERS);
+  const found = findRow(sheet, 1, username.toLowerCase());
+  if (!found) return { error: 'User not found' };
+
+  const pin = String(found.data[2]);
+  const hint = pin.charAt(0) + '**' + pin.charAt(pin.length - 1);
+  return { success: true, hint, displayName: found.data[3] };
+}
+
+function resetPin(params) {
+  const { username, newPin } = params;
+  if (!username || !newPin) return { error: 'Username and new PIN required' };
+  if (newPin.length !== 4 || isNaN(newPin)) return { error: 'PIN must be 4 digits' };
+
+  const sheet = getSheet(SHEETS.USERS);
+  const found = findRow(sheet, 1, username.toLowerCase());
+  if (!found) return { error: 'User not found' };
+
+  sheet.getRange(found.row, 3).setValue(newPin);
+  return { success: true };
 }
 
 function updateProfile(params, e) {

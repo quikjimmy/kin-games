@@ -65,7 +65,33 @@
       </div>
       <div class="btn-group mt-16">
         <button class="btn btn--primary" onclick="Auth.login()">SIGN IN</button>
+        <button class="btn btn--small" onclick="Auth.forgotPin()">FORGOT PIN?</button>
         <button class="btn btn--small" onclick="App.showScreen('title')">BACK</button>
+      </div>
+    </div>
+
+    <!-- Forgot PIN -->
+    <div id="screen-forgot" class="screen">
+      <h2>FORGOT PIN</h2>
+      <div id="forgot-msg"></div>
+      <div class="input-group">
+        <label>YOUR USERNAME</label>
+        <input type="text" id="forgot-username" autocomplete="off" autocapitalize="off">
+      </div>
+      <div id="forgot-hint" class="hidden panel panel--highlight mt-8" style="text-align: center;"></div>
+      <div id="forgot-reset" class="hidden mt-8">
+        <div class="input-group">
+          <label>NEW 4-DIGIT PIN</label>
+          <input type="password" id="forgot-newpin" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <div class="input-group">
+          <label>CONFIRM NEW PIN</label>
+          <input type="password" id="forgot-newpin2" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+        </div>
+      </div>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary btn--small" id="forgot-btn" onclick="Auth.showPinHint()">SHOW HINT</button>
+        <button class="btn btn--small" onclick="App.showScreen('login')">BACK TO LOGIN</button>
       </div>
     </div>
 
