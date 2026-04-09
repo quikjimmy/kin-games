@@ -15,7 +15,7 @@ const App = (() => {
   function init() {
     Game.init();
 
-    // Show splash for 3 seconds, then go to title or menu
+    // Show splash for 5 seconds, then go to title or menu
     setTimeout(() => {
       const splash = document.getElementById('screen-splash');
       splash.style.transition = 'opacity 0.5s';
@@ -28,7 +28,7 @@ const App = (() => {
           showScreen('title');
         }
       }, 500);
-    }, 3000);
+    }, 5000);
   }
 
   function showScreen(id) {
