@@ -15,13 +15,20 @@ const App = (() => {
   function init() {
     Game.init();
 
-    // Check for existing session
-    const user = Auth.currentUser();
-    if (user) {
-      showScreen('menu');
-    } else {
-      showScreen('title');
-    }
+    // Show splash for 3 seconds, then go to title or menu
+    setTimeout(() => {
+      const splash = document.getElementById('screen-splash');
+      splash.style.transition = 'opacity 0.5s';
+      splash.style.opacity = '0';
+      setTimeout(() => {
+        const user = Auth.currentUser();
+        if (user) {
+          showScreen('menu');
+        } else {
+          showScreen('title');
+        }
+      }, 500);
+    }, 3000);
   }
 
   function showScreen(id) {
