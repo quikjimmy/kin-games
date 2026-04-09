@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a1a">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <title>Solar Surge</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Title Screen -->
+    <div id="screen-title" class="screen active">
+      <div class="pixel-sun"><div class="pixel-sun-core"></div></div>
+      <h1>SOLAR<br>SURGE</h1>
+      <p class="title-subtitle">ROOFTOP INSTALLATION CHALLENGE</p>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" onclick="App.showScreen('login')">SIGN IN</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('signup')">NEW PLAYER</button>
+      </div>
+    </div>
+
+    <!-- Sign Up -->
+    <div id="screen-signup" class="screen">
+      <h2>NEW PLAYER</h2>
+      <div id="signup-msg"></div>
+      <div class="input-group">
+        <label>USERNAME</label>
+        <input type="text" id="signup-username" maxlength="16" autocomplete="off" autocapitalize="off">
+      </div>
+      <div class="input-group">
+        <label>DISPLAY NAME</label>
+        <input type="text" id="signup-display" maxlength="20" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>4-DIGIT PIN</label>
+        <input type="password" id="signup-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <div class="input-group">
+        <label>CONFIRM PIN</label>
+        <input type="password" id="signup-pin2" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" onclick="Auth.signup()">CREATE ACCOUNT</button>
+        <button class="btn btn--small" onclick="App.showScreen('title')">BACK</button>
+      </div>
+    </div>
+
+    <!-- Sign In -->
+    <div id="screen-login" class="screen">
+      <h2>SIGN IN</h2>
+      <div id="login-msg"></div>
+      <div class="input-group">
+        <label>USERNAME</label>
+        <input type="text" id="login-username" autocomplete="off" autocapitalize="off">
+      </div>
+      <div class="input-group">
+        <label>PIN</label>
+        <input type="password" id="login-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" onclick="Auth.login()">SIGN IN</button>
+        <button class="btn btn--small" onclick="App.showScreen('title')">BACK</button>
+      </div>
+    </div>
+
+    <!-- Main Menu (after login) -->
+    <div id="screen-menu" class="screen">
+      <h1>SOLAR<br>SURGE</h1>
+      <p id="menu-welcome" class="title-subtitle"></p>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" onclick="App.showScreen('levels')">PLAY</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('leaderboard')">LEADERBOARD</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('shop')">SOLAR STORE</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('challenges')">CHALLENGES</button>
+        <button class="btn btn--small" onclick="App.showScreen('profile')">PROFILE</button>
+        <button class="btn btn--small btn--danger" onclick="Auth.logout()">LOG OUT</button>
+      </div>
+    </div>
+
+    <!-- Level Select -->
+    <div id="screen-levels" class="screen">
+      <h2>SELECT LEVEL</h2>
+      <div id="level-grid" class="level-grid"></div>
+      <button class="btn btn--small mt-16" onclick="App.showScreen('menu')">BACK</button>
+    </div>
+
+    <!-- Shop -->
+    <div id="screen-shop" class="screen">
+      <h2>SOLAR STORE</h2>
+      <div class="panel panel--highlight mb-8">
+        <p style="color: var(--primary); font-size: 9px;">BALANCE: <span id="shop-balance">0</span> PTS</p>
+      </div>
+      <p class="mb-8" style="font-size: 7px; color: var(--text-dim);">BUY 1 ITEM BEFORE YOUR NEXT ATTEMPT.<br>COST DEDUCTED FROM LEADERBOARD SCORE.</p>
+      <div id="shop-items" class="w-full"></div>
+      <button class="btn btn--small mt-16" onclick="App.showScreen('menu')">BACK</button>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="screen-leaderboard" class="screen">
+      <h2>LEADERBOARD</h2>
+      <div id="leaderboard-list" class="w-full"></div>
+      <button class="btn btn--small mt-16" onclick="App.showScreen('menu')">BACK</button>
+    </div>
+
+    <!-- Profile -->
+    <div id="screen-profile" class="screen">
+      <h2>PROFILE</h2>
+      <div id="profile-content" class="w-full"></div>
+      <button class="btn btn--small mt-16" onclick="App.showScreen('menu')">BACK</button>
+    </div>
+
+    <!-- Challenges -->
+    <div id="screen-challenges" class="screen">
+      <h2>CHALLENGES</h2>
+      <div class="btn-group mb-16">
+        <button class="btn btn--primary btn--small" onclick="Challenge.showCreate()">NEW CHALLENGE</button>
+      </div>
+      <div id="challenge-list" class="w-full"></div>
+      <button class="btn btn--small mt-16" onclick="App.showScreen('menu')">BACK</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen" style="padding: 0;">
+      <div class="game-hud">
+        <button class="hud-quit" onclick="Game.quit()">&#9664; QUIT</button>
+        <span class="hud-score">SCORE: <span id="hud-score">0</span></span>
+        <span class="hud-combo" id="hud-combo"></span>
+        <span class="hud-timer">TIME: <span id="hud-timer">0</span></span>
+      </div>
+      <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Level Complete -->
+    <div id="screen-complete" class="screen">
+      <h2 id="complete-title">LEVEL COMPLETE!</h2>
+      <div id="complete-stars" class="mb-8" style="font-size: 24px; text-align: center;"></div>
+      <div id="score-breakdown" class="panel w-full"></div>
+      <div class="score-total" id="complete-total"></div>
+      <div id="complete-best" class="mb-8" style="font-size: 8px; color: var(--success); text-align: center;"></div>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" id="complete-next-btn" onclick="Game.nextLevel()">NEXT LEVEL</button>
+        <button class="btn btn--secondary" onclick="Game.replay()">REPLAY</button>
+        <button class="btn btn--small" onclick="App.showScreen('levels')">LEVEL SELECT</button>
+      </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="screen-gameover" class="screen">
+      <h1 style="color: var(--danger);">TIME'S<br>UP!</h1>
+      <p class="mb-16" style="font-size: 8px;">The timer ran out before you could finish.</p>
+      <div class="btn-group">
+        <button class="btn btn--primary" onclick="Game.replay()">TRY AGAIN</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('levels')">LEVEL SELECT</button>
+        <button class="btn btn--small" onclick="App.showScreen('menu')">MAIN MENU</button>
+      </div>
+    </div>
+
+    <!-- Modal overlay for dialogs -->
+    <div id="modal-overlay" class="modal-overlay">
+      <div class="modal" id="modal-content"></div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/challenge.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/levels/level1.js"></script>
+  <script src="js/levels/level2.js"></script>
+  <script src="js/levels/level3.js"></script>
+  <script src="js/levels/level4.js"></script>
+  <script src="js/levels/level5.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
