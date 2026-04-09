@@ -152,11 +152,12 @@ const Game = (() => {
     sunSurgeTimer = 0;
     nextSurgeIn = 6000 + Math.random() * 8000;
 
-    // Catcher
+    // Catcher — raised above thumb zone
+    const THUMB_ZONE = 90; // dead space at bottom for thumb
     catcher.w = levelConfig.catcherWidth || 60;
     catcher.h = 50;
     catcher.x = W / 2 - catcher.w / 2;
-    catcher.y = H - catcher.h - 20;
+    catcher.y = H - catcher.h - THUMB_ZONE;
     catcher.targetX = catcher.x;
 
     // Shop power-up
@@ -329,8 +330,8 @@ const Game = (() => {
         continue;
       }
 
-      // Off screen — missed
-      if (item.y > H + 20) {
+      // Past catcher — missed
+      if (item.y > catcher.y + catcher.h + 10) {
         if (!item.bad) {
           // Missed a good item
           combo = 0;
