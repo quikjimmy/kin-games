@@ -146,15 +146,42 @@ const App = (() => {
       return;
     }
 
-    // Generate avatar
-    const avatarCanvas = document.createElement('canvas');
-    avatarCanvas.width = 64;
-    avatarCanvas.height = 64;
-    avatarCanvas.style.cssText = 'image-rendering: pixelated; width: 64px; height: 64px; border: 2px solid var(--border); margin: 0 auto 12px; display: block;';
-    Leaderboard.drawAvatar(avatarCanvas, profile.displayName);
-
     container.innerHTML = '';
-    container.appendChild(avatarCanvas);
+
+    // Avatar display
+    const avatarWrap = document.createElement('div');
+    avatarWrap.style.cssText = 'text-align: center; margin-bottom: 12px; position: relative;';
+
+    if (profile.avatarData) {
+      // Show uploaded photo
+      const img = document.createElement('img');
+      img.src = profile.avatarData;
+      img.style.cssText = 'width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; display: block; margin: 0 auto;';
+      avatarWrap.appendChild(img);
+    } else {
+      // Fallback generated avatar
+      const avatarCanvas = document.createElement('canvas');
+      avatarCanvas.width = 64;
+      avatarCanvas.height = 64;
+      avatarCanvas.style.cssText = 'image-rendering: pixelated; width: 80px; height: 80px; border: 3px solid var(--border); border-radius: 50%; margin: 0 auto; display: block;';
+      Leaderboard.drawAvatar(avatarCanvas, profile.displayName);
+      avatarWrap.appendChild(avatarCanvas);
+    }
+
+    // Upload button
+    const uploadLabel = document.createElement('label');
+    uploadLabel.className = 'btn btn--small mt-8';
+    uploadLabel.style.cssText = 'display: inline-block; cursor: pointer; font-size: 7px;';
+    uploadLabel.textContent = profile.avatarData ? 'CHANGE PHOTO' : 'UPLOAD PHOTO';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.onchange = (e) => handleAvatarUpload(e, user.userId);
+    uploadLabel.appendChild(fileInput);
+    avatarWrap.appendChild(uploadLabel);
+
+    container.appendChild(avatarWrap);
 
     const info = document.createElement('div');
     info.className = 'panel';
@@ -190,6 +217,54 @@ const App = (() => {
       setupProfile();
     };
     container.appendChild(saveBtn);
+  }
+
+  async function handleAvatarUpload(e, userId) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Resize to 96x96 thumbnail to keep the base64 small
+    const dataUrl = await resizeImage(file, 96);
+
+    // Save to backend
+    const result = await API.call('updateProfile', { userId }, { avatarData: dataUrl });
+    if (result.error) {
+      showModal('ERROR', result.error, [{ text: 'OK', action: () => hideModal() }]);
+      return;
+    }
+
+    // Update local session
+    const session = Auth.getSession();
+    session.avatarData = dataUrl;
+    Auth.setSession(session);
+
+    Audio.sfx.correct();
+    setupProfile();
+  }
+
+  function resizeImage(file, maxSize) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = maxSize;
+          canvas.height = maxSize;
+          const ctx = canvas.getContext('2d');
+
+          // Crop to square from center
+          const srcSize = Math.min(img.width, img.height);
+          const sx = (img.width - srcSize) / 2;
+          const sy = (img.height - srcSize) / 2;
+          ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, maxSize, maxSize);
+
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   // Modal system

@@ -35,9 +35,17 @@ const Leaderboard = (() => {
 
       const row = document.createElement('div');
       row.className = 'lb-row';
+
+      let avatarHtml;
+      if (entry.avatarData) {
+        avatarHtml = `<img class="lb-avatar" src="${entry.avatarData}" style="border-radius: 50%; object-fit: cover;">`;
+      } else {
+        avatarHtml = `<canvas class="lb-avatar" width="32" height="32"></canvas>`;
+      }
+
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${rank}</div>
-        <canvas class="lb-avatar" width="32" height="32"></canvas>
+        ${avatarHtml}
         <div class="lb-info">
           <div class="lb-name">${escapeHtml(entry.displayName)}</div>
           <div class="lb-attempts">${entry.attempts} plays${entry.spent > 0 ? ' | ' + entry.spent + ' spent' : ''}</div>
@@ -45,9 +53,11 @@ const Leaderboard = (() => {
         <div class="lb-score">${entry.totalScore.toLocaleString()}</div>
       `;
 
-      // Draw avatar
-      const canvas = row.querySelector('canvas');
-      drawAvatar(canvas, entry.displayName);
+      // Draw generated avatar if no photo
+      if (!entry.avatarData) {
+        const canvas = row.querySelector('canvas');
+        drawAvatar(canvas, entry.displayName);
+      }
 
       container.appendChild(row);
     });
