@@ -177,7 +177,7 @@ function login(params) {
   const found = findRow(sheet, 1, username.toLowerCase());
   if (!found) return { error: 'User not found' };
 
-  if (found.data[2] !== pin) return { error: 'Wrong PIN' };
+  if (String(found.data[2]) !== String(pin)) return { error: 'Wrong PIN' };
 
   return {
     success: true,
