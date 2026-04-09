@@ -410,6 +410,12 @@ input:focus {
   border-color: var(--text);
 }
 
+.hud-level {
+  color: var(--secondary);
+  font-weight: bold;
+  font-size: 9px;
+}
+
 .hud-score {
   color: var(--primary);
   font-weight: bold;

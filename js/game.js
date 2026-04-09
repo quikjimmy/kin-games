@@ -32,6 +32,11 @@ const Game = (() => {
   let levelNum = 0;
   let levelConfig = null;
 
+  // Run tracking
+  let runScore = 0;          // cumulative score across all levels in this run
+  let runLevelScores = [];   // score per level in this run
+  let runLevelsCompleted = 0;
+
   // Dimensions
   let W, H;
 
@@ -108,6 +113,13 @@ const Game = (() => {
     canvas.style.height = rect.height + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
+  }
+
+  function startRun() {
+    runScore = 0;
+    runLevelScores = [];
+    runLevelsCompleted = 0;
+    startLevel(1);
   }
 
   function startLevel(num) {
@@ -633,8 +645,9 @@ const Game = (() => {
   // ---- HUD ----
 
   function updateHUD() {
-    document.getElementById('hud-score').textContent = score.toLocaleString();
+    document.getElementById('hud-score').textContent = (runScore + score).toLocaleString();
     document.getElementById('hud-timer').textContent = Math.ceil(timeRemaining / 1000);
+    document.getElementById('hud-level').textContent = 'L' + levelNum;
 
     const comboEl = document.getElementById('hud-combo');
     if (combo >= 5) {
@@ -650,6 +663,8 @@ const Game = (() => {
   }
 
   // ---- Level Complete ----
+
+  const LEVEL_NAMES = [null, 'Cleanup Crew', 'Measure Up', 'Panel Drop', 'Wire Run', 'Sun Catcher'];
 
   function levelComplete() {
     running = false;
@@ -692,28 +707,36 @@ const Game = (() => {
       stars
     };
 
-    // Submit
+    // Add to run
+    runLevelScores.push(finalScore);
+    runScore += finalScore;
+    runLevelsCompleted = levelNum;
+
+    if (levelNum >= 5) {
+      // All 5 levels done — submit run and show run complete
+      submitRun();
+      showRunComplete();
+    } else {
+      showCompleteScreen();
+    }
+  }
+
+  function submitRun() {
     const user = Auth.currentUser();
+    if (!user) return;
     API.call('submitScore', {
       userId: user.userId,
-      level: levelNum,
-      score: finalScore,
-      stars,
+      level: runLevelsCompleted,
+      score: runScore,
+      stars: runLevelsCompleted,
       shopItemUsed: activeItem || ''
-    }).then(() => {
-      const session = Auth.getSession();
-      if (levelNum >= (session.unlockedLevel || 1) && levelNum < 5) {
-        session.unlockedLevel = levelNum + 1;
-        Auth.setSession(session);
-      }
     });
-
-    Challenge.submitChallengeScore(levelNum, finalScore);
-    showCompleteScreen();
   }
 
   function showCompleteScreen() {
     App.showScreen('complete');
+
+    document.getElementById('complete-title').textContent = LEVEL_NAMES[levelNum].toUpperCase() + ' DONE!';
 
     const starsEl = document.getElementById('complete-stars');
     let starsHtml = '';
@@ -725,33 +748,68 @@ const Game = (() => {
     const bd = document.getElementById('score-breakdown');
     let html = '';
     html += scoreLine('Items Caught', breakdown.catches);
-    html += scoreLine('Base Score', breakdown.baseScore.toLocaleString());
+    html += scoreLine('Level Score', breakdown.baseScore.toLocaleString());
     html += scoreLine('Max Combo', breakdown.maxCombo + 'x');
     if (breakdown.mistakes > 0) html += scoreLine('Mistakes', breakdown.mistakes, 'penalty');
-    if (breakdown.cleanBonus > 0) html += scoreLine('Perfect Round! x1.5', '+' + breakdown.cleanBonus.toLocaleString(), 'bonus');
+    if (breakdown.cleanBonus > 0) html += scoreLine('Perfect Round!', '+' + breakdown.cleanBonus.toLocaleString(), 'bonus');
     if (breakdown.doubleOrNothing) html += scoreLine('Double or Nothing', breakdown.doubleOrNothing, breakdown.doubleOrNothing.includes('DOUBLE') ? 'bonus' : 'penalty');
     bd.innerHTML = html;
 
-    document.getElementById('complete-total').textContent = breakdown.finalScore.toLocaleString() + ' PTS';
+    document.getElementById('complete-total').textContent = '+' + breakdown.finalScore.toLocaleString() + ' PTS';
+
+    // Show cumulative run score
+    document.getElementById('complete-run').textContent = 'RUN TOTAL: ' + runScore.toLocaleString() + ' PTS (LEVEL ' + levelNum + '/5)';
 
     const nextBtn = document.getElementById('complete-next-btn');
-    if (levelNum >= 5) {
-      nextBtn.textContent = 'ALL LEVELS DONE!';
-      nextBtn.disabled = true;
-    } else {
-      nextBtn.textContent = 'NEXT LEVEL';
-      nextBtn.disabled = false;
+    nextBtn.textContent = 'LEVEL ' + (levelNum + 1) + ': ' + LEVEL_NAMES[levelNum + 1].toUpperCase();
+    nextBtn.disabled = false;
+  }
+
+  function showRunComplete() {
+    App.showScreen('runcomplete');
+
+    const summary = document.getElementById('run-summary');
+    let html = '';
+    for (let i = 0; i < runLevelScores.length; i++) {
+      html += scoreLine('L' + (i + 1) + ' ' + LEVEL_NAMES[i + 1], runLevelScores[i].toLocaleString());
     }
+    summary.innerHTML = html;
+
+    document.getElementById('run-total').textContent = runScore.toLocaleString() + ' PTS';
+  }
+
+  function showGameOver() {
+    // Run ended early — submit what they have
+    submitRun();
+
+    App.showScreen('gameover');
+    const levels = runLevelsCompleted;
+    document.getElementById('gameover-msg').textContent =
+      levels > 0
+        ? 'You made it through ' + levels + ' level' + (levels > 1 ? 's' : '') + '.'
+        : 'Better luck next time!';
+
+    const summary = document.getElementById('gameover-run');
+    let html = '';
+    for (let i = 0; i < runLevelScores.length; i++) {
+      html += scoreLine('L' + (i + 1) + ' ' + LEVEL_NAMES[i + 1], runLevelScores[i].toLocaleString());
+    }
+    if (runLevelScores.length === 0) {
+      html = '<p style="font-size: 8px; color: var(--text-dim); text-align: center;">No levels completed</p>';
+    }
+    summary.innerHTML = html;
+
+    document.getElementById('gameover-total').textContent = runScore.toLocaleString() + ' PTS';
   }
 
   function scoreLine(label, value, cls = '') {
     return `<div class="score-line"><span class="label">${label}</span><span class="value ${cls}">${value}</span></div>`;
   }
 
-  function replay() { startLevel(levelNum); }
   function nextLevel() { if (levelNum < 5) startLevel(levelNum + 1); }
+  function endRun() { submitRun(); App.showScreen('menu'); }
   function stop() { running = false; if (animFrame) cancelAnimationFrame(animFrame); }
-  function quit() { stop(); App.showScreen('levels'); }
+  function quit() { stop(); showGameOver(); }
 
   // ---- Touch ----
 
@@ -772,5 +830,5 @@ const Game = (() => {
     catcher.targetX = pos.x - catcher.w / 2;
   }
 
-  return { init, startLevel, replay, nextLevel, stop, quit };
+  return { init, startRun, startLevel, nextLevel, endRun, stop, quit };
 })();

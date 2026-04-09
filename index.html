@@ -104,21 +104,15 @@
     <div id="screen-menu" class="screen">
       <h1>SOLAR<br>SURGE</h1>
       <p id="menu-welcome" class="title-subtitle"></p>
+      <div id="menu-best" style="font-size: 8px; color: var(--secondary); text-align: center; margin-bottom: 8px;"></div>
       <div class="btn-group mt-16">
-        <button class="btn btn--primary" onclick="App.showScreen('levels')">PLAY</button>
+        <button class="btn btn--primary" onclick="Game.startRun()">PLAY</button>
         <button class="btn btn--secondary" onclick="App.showScreen('leaderboard')">LEADERBOARD</button>
         <button class="btn btn--secondary" onclick="App.showScreen('shop')">SOLAR STORE</button>
         <button class="btn btn--secondary" onclick="App.showScreen('challenges')">CHALLENGES</button>
         <button class="btn btn--small" onclick="App.showScreen('profile')">PROFILE</button>
         <button class="btn btn--small btn--danger" onclick="Auth.logout()">LOG OUT</button>
       </div>
-    </div>
-
-    <!-- Level Select -->
-    <div id="screen-levels" class="screen">
-      <h2>SELECT LEVEL</h2>
-      <div id="level-grid" class="level-grid"></div>
-      <button class="btn btn--small mt-16" onclick="App.showScreen('menu')">BACK</button>
     </div>
 
     <!-- Shop -->
@@ -160,10 +154,11 @@
     <!-- Game Screen -->
     <div id="screen-game" class="screen" style="padding: 0;">
       <div class="game-hud">
-        <button class="hud-quit" onclick="Game.quit()">&#9664; QUIT</button>
-        <span class="hud-score">SCORE: <span id="hud-score">0</span></span>
+        <button class="hud-quit" onclick="Game.quit()">&#9664;</button>
+        <span class="hud-level" id="hud-level">L1</span>
+        <span class="hud-score"><span id="hud-score">0</span></span>
         <span class="hud-combo" id="hud-combo"></span>
-        <span class="hud-timer">TIME: <span id="hud-timer">0</span></span>
+        <span class="hud-timer"><span id="hud-timer">30</span>s</span>
       </div>
       <canvas id="game-canvas"></canvas>
     </div>
@@ -174,21 +169,35 @@
       <div id="complete-stars" class="mb-8" style="font-size: 24px; text-align: center;"></div>
       <div id="score-breakdown" class="panel w-full"></div>
       <div class="score-total" id="complete-total"></div>
-      <div id="complete-best" class="mb-8" style="font-size: 8px; color: var(--success); text-align: center;"></div>
+      <div id="complete-run" style="font-size: 9px; color: var(--primary); text-align: center; margin: 8px 0;"></div>
       <div class="btn-group mt-16">
         <button class="btn btn--primary" id="complete-next-btn" onclick="Game.nextLevel()">NEXT LEVEL</button>
-        <button class="btn btn--secondary" onclick="Game.replay()">REPLAY</button>
-        <button class="btn btn--small" onclick="App.showScreen('levels')">LEVEL SELECT</button>
+        <button class="btn btn--small" onclick="Game.endRun()">END RUN</button>
+      </div>
+    </div>
+
+    <!-- Run Complete (all 5 levels done) -->
+    <div id="screen-runcomplete" class="screen">
+      <h1 style="color: var(--primary);">RUN<br>COMPLETE!</h1>
+      <div id="run-summary" class="panel w-full mt-8"></div>
+      <div class="score-total" id="run-total"></div>
+      <div id="run-best" style="font-size: 8px; color: var(--success); text-align: center; margin-bottom: 8px;"></div>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" onclick="Game.startRun()">PLAY AGAIN</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('leaderboard')">LEADERBOARD</button>
+        <button class="btn btn--small" onclick="App.showScreen('menu')">MAIN MENU</button>
       </div>
     </div>
 
     <!-- Game Over -->
     <div id="screen-gameover" class="screen">
       <h1 style="color: var(--danger);">TIME'S<br>UP!</h1>
-      <p class="mb-16" style="font-size: 8px;">The timer ran out before you could finish.</p>
-      <div class="btn-group">
-        <button class="btn btn--primary" onclick="Game.replay()">TRY AGAIN</button>
-        <button class="btn btn--secondary" onclick="App.showScreen('levels')">LEVEL SELECT</button>
+      <p id="gameover-msg" class="mb-8" style="font-size: 8px; text-align: center;"></p>
+      <div id="gameover-run" class="panel w-full mb-8"></div>
+      <div class="score-total" id="gameover-total"></div>
+      <div class="btn-group mt-16">
+        <button class="btn btn--primary" onclick="Game.startRun()">NEW RUN</button>
+        <button class="btn btn--secondary" onclick="App.showScreen('leaderboard')">LEADERBOARD</button>
         <button class="btn btn--small" onclick="App.showScreen('menu')">MAIN MENU</button>
       </div>
     </div>

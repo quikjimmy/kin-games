@@ -44,9 +44,6 @@ const App = (() => {
       case 'menu':
         setupMenu();
         break;
-      case 'levels':
-        setupLevels();
-        break;
       case 'leaderboard':
         Leaderboard.load();
         break;
@@ -65,75 +62,36 @@ const App = (() => {
     }
 
     // Stop game if navigating away
-    if (id !== 'game' && id !== 'complete' && id !== 'gameover') {
+    if (id !== 'game' && id !== 'complete' && id !== 'gameover' && id !== 'runcomplete') {
       Game.stop();
     }
   }
 
-  function setupMenu() {
+  async function setupMenu() {
     const user = Auth.currentUser();
     if (user) {
       document.getElementById('menu-welcome').textContent = 'WELCOME, ' + (user.displayName || user.username).toUpperCase();
-    }
-  }
 
-  async function setupLevels() {
-    const user = Auth.currentUser();
-    const grid = document.getElementById('level-grid');
-    grid.innerHTML = '';
-
-    // Fetch user scores
-    let userScores = {};
-    if (user) {
+      // Show best run score
+      const bestEl = document.getElementById('menu-best');
       const result = await API.call('getUserScores', { userId: user.userId });
-      if (result.levels) userScores = result.levels;
-    }
-
-    const session = Auth.getSession();
-    const unlockedLevel = session ? (session.unlockedLevel || 1) : 1;
-
-    for (let i = 1; i <= 5; i++) {
-      const info = LEVEL_INFO[i];
-      const scoreData = userScores[i];
-      const isUnlocked = i <= unlockedLevel;
-      const isCompleted = scoreData && scoreData.best > 0;
-
-      const card = document.createElement('div');
-      card.className = 'level-card ' + (isCompleted ? 'completed' : isUnlocked ? 'unlocked' : 'locked');
-
-      let starsHtml = '';
-      for (let s = 0; s < 3; s++) {
-        const earned = scoreData && s < scoreData.bestStars;
-        starsHtml += `<span class="${earned ? 'earned' : ''}">&#9733;</span>`;
+      if (result.levels) {
+        const best = result.levels;
+        // Find highest single run score (stored as total in the score field)
+        let bestScore = 0;
+        let bestLevels = 0;
+        for (const lvl in best) {
+          if (best[lvl].best > bestScore) {
+            bestScore = best[lvl].best;
+            bestLevels = Number(lvl);
+          }
+        }
+        if (bestScore > 0) {
+          bestEl.textContent = 'BEST RUN: ' + bestScore.toLocaleString() + ' PTS (' + bestLevels + '/5 LEVELS)';
+        } else {
+          bestEl.textContent = 'NO RUNS YET — HIT PLAY!';
+        }
       }
-
-      card.innerHTML = `
-        <div class="level-num">${i}</div>
-        <div class="level-info">
-          <div class="level-name">${info.name}</div>
-          <div class="level-desc">${isUnlocked ? info.desc : 'LOCKED'}</div>
-          ${scoreData ? `<div class="level-desc" style="color: var(--secondary); margin-top: 2px;">BEST: ${scoreData.best} | ${scoreData.attempts} plays</div>` : ''}
-        </div>
-        <div class="level-stars">${isUnlocked ? starsHtml : '&#128274;'}</div>
-      `;
-
-      if (isUnlocked) {
-        card.onclick = () => {
-          Audio.sfx.tap();
-          Game.startLevel(i);
-        };
-      }
-
-      grid.appendChild(card);
-    }
-
-    // Show equipped shop item if any
-    const equipped = Shop.getEquipped();
-    if (equipped) {
-      const note = document.createElement('div');
-      note.className = 'panel panel--highlight mt-8';
-      note.innerHTML = `<p style="font-size: 7px; color: var(--primary); text-align: center;">EQUIPPED: ${equipped.toUpperCase()}</p>`;
-      grid.appendChild(note);
     }
   }
 
